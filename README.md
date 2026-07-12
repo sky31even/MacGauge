@@ -1,11 +1,26 @@
-# MacGauge
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="MacGauge icon">
+</p>
 
-A lightweight macOS menu-bar system monitor for Apple Silicon Macs.
+<h1 align="center">MacGauge</h1>
+
+<p align="center">A lightweight macOS menu-bar system monitor for Apple Silicon Macs.</p>
 
 MacGauge lives in your menu bar showing live CPU usage, and expands into a
 stats panel that can be pinned to the corner of your screen as a compact,
 always-on-top strip — a "live widget" that updates every 2 seconds, faster
 than macOS widgets ever could.
+
+## Screenshots
+
+**Menu bar panel** — click the gauge icon in the menu bar:
+
+<img src="docs/popover.png" width="342" alt="MacGauge menu bar panel showing performance gauges, I/O speeds, and top processes">
+
+**Pinned panel** — click the pin to keep a compact strip floating at the
+top-right corner of your screen:
+
+<img src="docs/pinned.png" width="860" alt="MacGauge pinned panel, a compact horizontal strip with gauges, I/O speeds, and top processes">
 
 ## Features
 
