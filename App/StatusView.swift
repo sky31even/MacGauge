@@ -231,22 +231,19 @@ struct CompactStatusView: View {
 
             section("Top Network", width: columnWidth) {
                 let items = Array(snapshot.topNetworkProcesses.prefix(topCount))
-                ForEach(items) { process in
-                    HStack(spacing: 4) {
-                        ProcessIcon(fileName: process.iconFileName, size: 13)
-                        Text(process.name).lineLimit(1).truncationMode(.tail)
-                        Spacer(minLength: 4)
-                        Text(Format.speed(process.downBps + process.upBps))
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                            .fixedSize()
-                    }
-                    if process.id != items.last?.id {
-                        Spacer(minLength: 0)
-                    }
-                }
                 if items.isEmpty {
                     Text("idle").foregroundStyle(.tertiary)
+                } else if items.count < topCount {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(items) { networkRow($0) }
+                    }
+                } else {
+                    ForEach(items) { process in
+                        networkRow(process)
+                        if process.id != items.last?.id {
+                            Spacer(minLength: 0)
+                        }
+                    }
                 }
             }
         }
@@ -287,6 +284,18 @@ struct CompactStatusView: View {
         }
         .font(.caption)
         .frame(width: width, alignment: .topLeading)
+    }
+
+    private func networkRow(_ process: NetworkProcessSample) -> some View {
+        HStack(spacing: 4) {
+            ProcessIcon(fileName: process.iconFileName, size: 13)
+            Text(process.name).lineLimit(1).truncationMode(.tail)
+            Spacer(minLength: 4)
+            Text(Format.speed(process.downBps + process.upBps))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .fixedSize()
+        }
     }
 
     private func ioRow(_ icon: String, _ tint: Color, _ label: String, _ value: String) -> some View {
