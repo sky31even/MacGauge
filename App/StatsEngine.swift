@@ -26,11 +26,13 @@ final class StatsEngine: ObservableObject {
     private let network = NetworkSampler()
     private let temperature = TemperatureSampler()
     private let processes: ProcessSampler
+    private let diskProcesses: DiskUsageSampler
     private let networkProcesses: NetworkUsageSampler
 
     init() {
         let resolver = AppInfoResolver()
         processes = ProcessSampler(resolver: resolver)
+        diskProcesses = DiskUsageSampler(resolver: resolver)
         networkProcesses = NetworkUsageSampler(resolver: resolver)
     }
 
@@ -65,6 +67,7 @@ final class StatsEngine: ObservableObject {
         let (upBps, downBps) = network.sample()
         let temps = temperature.sample()
         let topCPU = processes.sample(topCount: 10)
+        let topDisk = diskProcesses.sample(topCount: 10)
         let topNet = networkProcesses.sample(topCount: 10)
 
         return Snapshot(
@@ -84,6 +87,7 @@ final class StatsEngine: ObservableObject {
             cpuTemp: temps.cpu,
             gpuTemp: temps.gpu,
             topCPUProcesses: topCPU,
+            topDiskProcesses: topDisk,
             topNetworkProcesses: topNet
         )
     }

@@ -121,6 +121,26 @@ struct StatusView: View {
 
             Divider()
 
+            section("Top Disk RW") {
+                ForEach(snapshot.topDiskProcesses.prefix(5)) { process in
+                    HStack(spacing: 6) {
+                        ProcessIcon(fileName: process.iconFileName)
+                        Text(process.name).lineLimit(1).truncationMode(.tail)
+                        Spacer(minLength: 4)
+                        Text("R \(Format.speed(process.readBps))  W \(Format.speed(process.writeBps))")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .fixedSize()
+                    }
+                }
+                if snapshot.topDiskProcesses.isEmpty {
+                    Text("No disk activity")
+                        .foregroundStyle(.tertiary)
+                }
+            }
+
+            Divider()
+
             section("Top Network") {
                 ForEach(snapshot.topNetworkProcesses.prefix(10)) { process in
                     HStack(spacing: 6) {
@@ -229,6 +249,26 @@ struct CompactStatusView: View {
 
             divider
 
+            section("Top Disk RW", width: columnWidth) {
+                let items = Array(snapshot.topDiskProcesses.prefix(topCount))
+                if items.isEmpty {
+                    Text("idle").foregroundStyle(.tertiary)
+                } else if items.count < topCount {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(items) { diskRow($0) }
+                    }
+                } else {
+                    ForEach(items) { process in
+                        diskRow(process)
+                        if process.id != items.last?.id {
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+            }
+
+            divider
+
             section("Top Network", width: columnWidth) {
                 let items = Array(snapshot.topNetworkProcesses.prefix(topCount))
                 if items.isEmpty {
@@ -292,6 +332,18 @@ struct CompactStatusView: View {
             Text(process.name).lineLimit(1).truncationMode(.tail)
             Spacer(minLength: 4)
             Text(Format.speed(process.downBps + process.upBps))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .fixedSize()
+        }
+    }
+
+    private func diskRow(_ process: DiskProcessSample) -> some View {
+        HStack(spacing: 4) {
+            ProcessIcon(fileName: process.iconFileName, size: 13)
+            Text(process.name).lineLimit(1).truncationMode(.tail)
+            Spacer(minLength: 4)
+            Text(Format.speed(process.readBps + process.writeBps))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .fixedSize()

@@ -294,6 +294,65 @@ final class ProcessSampler {
     }
 }
 
+// MARK: - Top processes by disk I/O (libproc rusage deltas)
+
+final class DiskUsageSampler {
+    private let resolver: AppInfoResolver
+    private var prevIO: [pid_t: (read: UInt64, write: UInt64)] = [:]
+    private var prevTime: Date?
+
+    init(resolver: AppInfoResolver) {
+        self.resolver = resolver
+    }
+
+    func sample(topCount: Int) -> [DiskProcessSample] {
+        let capacity = 8192
+        var pids = [pid_t](repeating: 0, count: capacity)
+        let byteCount = proc_listallpids(&pids, Int32(capacity * MemoryLayout<pid_t>.stride))
+        guard byteCount > 0 else { return [] }
+        let pidCount = min(Int(byteCount), capacity)
+
+        var counters: [pid_t: (read: UInt64, write: UInt64)] = [:]
+        for i in 0..<pidCount {
+            let pid = pids[i]
+            guard pid > 0 else { continue }
+            var usage = rusage_info_current()
+            let result = withUnsafeMutablePointer(to: &usage) {
+                $0.withMemoryRebound(to: (rusage_info_t?).self, capacity: 1) {
+                    proc_pid_rusage(pid, RUSAGE_INFO_CURRENT, $0)
+                }
+            }
+            guard result == 0 else { continue }
+            counters[pid] = (usage.ri_diskio_bytesread, usage.ri_diskio_byteswritten)
+        }
+
+        let now = Date()
+        defer { prevIO = counters; prevTime = now }
+        guard let prevTime else { return [] }
+        let dt = now.timeIntervalSince(prevTime)
+        guard dt > 0 else { return [] }
+
+        return counters
+            .compactMap { pid, current -> (pid: pid_t, read: Double, write: Double)? in
+                // Counters can reset when a pid is reused; skip regressions.
+                guard let prev = prevIO[pid],
+                      current.read >= prev.read, current.write >= prev.write else { return nil }
+                let read = Double(current.read - prev.read) / dt
+                let write = Double(current.write - prev.write) / dt
+                guard read + write > 0 else { return nil }
+                return (pid, read, write)
+            }
+            .sorted { $0.read + $0.write > $1.read + $1.write }
+            .prefix(topCount)
+            .compactMap { item in
+                guard let (name, iconFile) = resolver.describe(pid: item.pid) else { return nil }
+                return DiskProcessSample(pid: item.pid, name: name,
+                                         readBps: item.read, writeBps: item.write,
+                                         iconFileName: iconFile)
+            }
+    }
+}
+
 // MARK: - Top processes by network usage (nettop counter deltas)
 
 final class NetworkUsageSampler {

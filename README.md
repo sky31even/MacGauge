@@ -28,6 +28,7 @@ top-right corner of your screen:
   temperatures
 - **I/O speeds** — network down/up and disk read/write throughput
 - **Top CPU processes** — with app icons, Activity Monitor style
+- **Top disk R/W processes** — per-process disk read/write throughput
 - **Top network processes** — per-process down/up traffic
 - **Pinned panel** — one click pins a horizontal compact panel to the
   top-right corner, floating above all windows on every Space; drag it
@@ -78,13 +79,14 @@ your own certificate (any Apple Development certificate works for local use).
 | Network per process | `/usr/bin/nettop` counter deltas |
 | Temperatures | Private `IOHIDEventSystemClient` sensors + AppleSMC key enumeration |
 | Top CPU processes | `proc_listallpids` + `proc_pid_rusage` CPU-time deltas |
+| Top disk R/W processes | `proc_pid_rusage` disk I/O byte deltas |
 
 ## Limitations
 
 - Temperature reading uses private APIs (the same approach as Stats, iStat
   Menus, and asitop), so MacGauge is not App Store distributable.
 - Per-process **GPU** usage would require root (`powermetrics`); process
-  rankings cover CPU and network only.
+  rankings cover CPU, disk, and network only.
 - Intel Macs are untested (temperatures fall back to SMC `sp78` keys).
 
 ## License

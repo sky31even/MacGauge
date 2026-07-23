@@ -19,6 +19,16 @@ struct NetworkProcessSample: Identifiable, Hashable {
     var id: Int32 { pid }
 }
 
+struct DiskProcessSample: Identifiable, Hashable {
+    var pid: Int32
+    var name: String
+    var readBps: Double
+    var writeBps: Double
+    var iconFileName: String?
+
+    var id: Int32 { pid }
+}
+
 struct Snapshot {
     var timestamp: Date
 
@@ -41,6 +51,7 @@ struct Snapshot {
     var gpuTemp: Double?
 
     var topCPUProcesses: [ProcessSample]
+    var topDiskProcesses: [DiskProcessSample]
     var topNetworkProcesses: [NetworkProcessSample]
 
     static let placeholder = Snapshot(
@@ -51,7 +62,7 @@ struct Snapshot {
         diskReadBps: 0, diskWriteBps: 0,
         netUpBps: 0, netDownBps: 0,
         cpuTemp: nil, gpuTemp: nil,
-        topCPUProcesses: [], topNetworkProcesses: []
+        topCPUProcesses: [], topDiskProcesses: [], topNetworkProcesses: []
     )
 }
 
